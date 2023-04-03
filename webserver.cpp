@@ -215,6 +215,8 @@ void WebServer::deal_timer(util_timer *timer, int sockfd)
 }
 
 //http 处理用户数据
+// 此处的LT和ET是对监听socket区分的
+// conneced socket的ET和LT 是在处理读写事件调用的read_once函数里面实现的
 bool WebServer::dealclinetdata()
 {
     struct sockaddr_in client_address;
@@ -308,6 +310,10 @@ bool WebServer::dealwithsignal(bool &timeout, bool &stop_server)
 }
 
 //处理客户连接上接收到的数据
+// 无论是reactor还是proactor模式，其基本逻辑都是：如果read_once返回成功，说明一切正常，数据读取顺利
+// 如果read_once返回错误，说明对方关闭连接，需要将定时器删除，调用关闭连接的函数
+// 只不过reactor是在工作线程中进行read_once，proactor是在本主线程中先read_once，再加入任务队列
+// 两种模式都需要对定时器进行调整
 void WebServer::dealwithread(int sockfd)
 {
     //创建定时器临时变量，将该连接对应的定时器取出来
@@ -361,7 +367,7 @@ void WebServer::dealwithread(int sockfd)
     }
 }
 
-//写操作
+//写操作，与上面的读操作一样的思路
 void WebServer::dealwithwrite(int sockfd)
 {
     util_timer *timer = users_timer[sockfd].timer;
