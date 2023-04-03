@@ -236,6 +236,7 @@ bool WebServer::dealclinetdata()
             LOG_ERROR("%s", "Internal server busy");
             return false;
         }
+        // 在timer函数中将新建立的已连接socket注册到epoll上
         timer(connfd, client_address);
     }
 
