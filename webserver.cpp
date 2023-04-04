@@ -175,6 +175,7 @@ void WebServer::eventListen()
 //创建一个定时器节点，将连接信息挂载
 void WebServer::timer(int connfd, struct sockaddr_in client_address)
 {
+    // 该函数调用中，把主线程上监听到的新到来的http连接，注册到epoll上
     users[connfd].init(connfd, client_address, m_root, m_CONNTrigmode, m_close_log, m_user, m_passWord, m_databaseName);
 
     //初始化client_data数据
@@ -237,6 +238,7 @@ bool WebServer::dealclinetdata()
             return false;
         }
         // 在timer函数中将新建立的已连接socket注册到epoll上
+        // timer函数负责创建一个新的已连接http对象，并为该对象赋予事件节点相关信息
         timer(connfd, client_address);
     }
 
